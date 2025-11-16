@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Aviator X — Advanced (Takeoff curve + Smooth History)</title>
+<title>Aviator X — Enhanced (Final)</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#070708;
     --panel:#0f0f12;
     --muted:#9aa0a6;
-    --accent:#e53b3b;
+    --red:#e53b3b;
+    --soft-gray:#2a2a2d;
     --glass: rgba(255,255,255,0.03);
   }
   *{box-sizing:border-box}
@@ -19,84 +20,203 @@
     margin:0;
     font-family:'Poppins',system-ui,Segoe UI,Roboto,Helvetica,Arial;
     background:
-      radial-gradient(circle at 10% 10%, rgba(50, 49, 49, 0.92), transparent 12%),
+      radial-gradient(circle at 10% 10%, rgba(50, 49, 49, 0.921), transparent 12%),
       radial-gradient(circle at 90% 90%, rgba(255,255,255,0.01), transparent 12%),
       var(--bg);
     color:#f6f6f6;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
-    padding:18px;
+    padding-bottom:48px;
   }
 
-  .wrap{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 320px;gap:18px;}
-  header{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  h1{margin:0;font-size:20px;font-weight:800;color:var(--accent)}
-  .subtitle{font-size:13px;color:var(--muted)}
+  header{
+    position:sticky;top:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;background:linear-gradient(180deg, rgba(91, 7, 7, 0.775), transparent);
+    border-bottom:1px solid rgba(133, 22, 22, 0.649);backdrop-filter: blur(6px);
+  }
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
+    background: linear-gradient(180deg, rgba(124, 56, 56, 0), rgba(0,0,0,0.06));
+    border:1px solid rgba(245, 240, 240, 0.1)}
+  .title{font-weight:800;color:var(--red);letter-spacing:0.5px}
+  .subtitle{font-size:12px;color:var(--muted);margin-top:-4px}
+
+  .container{max-width:980px;margin:18px auto;padding:14px}
 
   .card{
-    background: linear-gradient(180deg, rgba(60, 22, 22, 0.08), rgba(255,255,255,0.01));
-    border-radius:12px;padding:14px;border:1px solid rgba(164, 16, 16, 0.06);
+    background: linear-gradient(180deg, rgba(60, 22, 22, 0.351), rgba(255,255,255,0.008));
+    border-radius:12px;padding:14px;border:1px solid rgba(164, 16, 16, 0.932);margin-bottom:14px;
   }
 
-  /* Main game area */
-  .game{
-    display:flex;flex-direction:column;gap:12px;
+  .flex{display:flex;gap:12px;align-items:center}
+  .col{display:flex;flex-direction:column;gap:10px}
+
+  .wallet-row{justify-content:space-between;align-items:center}
+  .wallet-balance{font-size:26px;font-weight:900;color:var(--red);text-shadow:0 0 8px rgba(229,59,59,0.06)}
+
+  input[type=number], input[type=text], select{
+    background:#1d1d26;border:1px solid rgba(255,255,255,0.04);
+    padding:10px;border-radius:8px;color:#dcdcdc;font-size:15px;outline:none;
   }
 
-  .hud{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .mult{font-size:48px;font-weight:900;color:var(--accent);text-shadow:0 6px 18px rgba(229,59,59,0.04)}
-  .status{color:var(--muted)}
-
-  .canvas-wrap{position:relative;height:320px;border-radius:12px;overflow:visible}
-  #flightCanvas{width:100%;height:100%;display:block;border-radius:12px;background:
-      linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));border:1px solid rgba(255,255,255,0.02);}
-  .plane-svg{position:absolute;left:0;top:0;width:120px;height:72px;pointer-events:none;transform-origin:center center;will-change:transform,left,top}
-
-  .controls{display:flex;gap:10px;align-items:center}
-  input[type=number]{background:#121216;border:1px solid rgba(255,255,255,0.02);padding:8px;border-radius:8px;color:#ddd}
-  .btn{border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
-  .btn-primary{background:linear-gradient(180deg,var(--accent),#c93a3a);color:white}
+  .btn{
+    border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;
+    transition:transform .12s ease,opacity .12s ease,box-shadow .12s ease;
+  }
+  .btn:active{transform:translateY(1px) scale(.997)}
+  .btn-primary{background:linear-gradient(180deg,var(--red),#c93a3a);color:white;box-shadow:0 10px 26px rgba(229,59,59,0.06)}
   .btn-ghost{background:transparent;color:#ddd;border:1px solid rgba(255,255,255,0.03)}
+  .btn-small{padding:8px 10px;font-size:14px}
 
-  /* Right column */
-  .right-col{display:flex;flex-direction:column;gap:12px}
-  .leaderboard h3{margin:0;font-size:16px;color:var(--accent)}
-  .lb-item{display:flex;justify-content:space-between;padding:10px;border-radius:8px;margin-top:8px;background:rgba(255,255,255,0.02)}
-  .history-graph{height:180px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));border:1px solid rgba(255,255,255,0.02)}
+  .game-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start}
+  .multiplier{font-size:48px;font-weight:900;color:var(--red);text-shadow:0 6px 18px rgba(229,59,59,0.06)}
+  .controls{min-width:220px;display:flex;flex-direction:column;gap:8px}
 
-  footer{grid-column:1 / -1;margin-top:6px;color:var(--muted);font-size:13px}
-  @media (max-width:980px){ .wrap{grid-template-columns:1fr} .right-col{order:2} }
+  .track{
+    margin-top:14px;position:relative;height:240px;border-radius:12px;overflow:hidden;
+    background:
+      radial-gradient(ellipse at center, rgba(255,255,255,0.01), transparent 30%),
+      linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  .rays{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.01), transparent 20%),
+      radial-gradient(ellipse at 50% 90%, rgba(255,255,255,0.01), transparent 25%);
+    mix-blend-mode:overlay;opacity:0.55;
+  }
+
+  .plane-wrap{
+    position:absolute;bottom:16px;left:8px;width:110px;height:72px;z-index:6;pointer-events:none;
+    transform-origin:center;transition:transform .06s linear,left .06s linear;will-change:left,transform;
+  }
+
+  .trail{position:absolute;left:-60px;bottom:28px;width:140px;height:26px;opacity:0.7;filter: blur(10px);transform-origin:left center;pointer-events:none}
+
+  .smoke{position:absolute;bottom:26px;left:calc(var(--smoke-left, -40px));width:120px;height:60px;opacity:0;pointer-events:none}
+  .smoke .p{position:absolute;background: radial-gradient(circle, rgba(90,90,90,0.22), rgba(40,40,40,0.06)); border-radius:50%}
+
+  .hud{position:absolute;top:12px;left:12px;background:rgba(0,0,0,0.25);padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+  .status{font-size:13px;color:var(--muted);margin-top:8px}
+
+  .history-list{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hist-pill{background:rgba(3, 0, 0, 0);border:1px solid rgba(255,255,255,0.03);padding:8px 10px;border-radius:999px;font-weight:600;color:#ddd;font-size:13px}
+
+  /* leaderboard table */
+  .leaderboard{width:100%;border-collapse:collapse;margin-top:6px}
+  .leaderboard th, .leaderboard td{padding:8px 10px;text-align:left;font-size:14px;border-bottom:1px dashed rgba(255,255,255,0.03)}
+  .muted{color:var(--muted);font-size:13px}
+
+  @media (max-width:720px){
+    .multiplier{font-size:40px}
+    .plane-wrap{width:92px;height:60px}
+    .controls{min-width:unset}
+    .track{height:200px}
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div>
-        <h1>Aviator X — Advanced</h1>
-        <div class="subtitle">Takeoff motion curve · Smooth history graph</div>
-      </div>
-      <div class="subtitle">Player: <strong id="playerDisplay">Guest</strong></div>
-    </header>
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 12L22 6L12 22L9 13L2 12Z" fill="#e53b3b"/>
+      </svg>
+    </div>
+    <div>
+      <div class="title">Aviator X</div>
+      <div class="subtitle">Crash Flight Engine</div>
+    </div>
+  </div>
 
-    <!-- LEFT: game -->
-    <section class="card game">
-      <div class="hud">
+  <div style="display:flex;gap:10px;align-items:center">
+    <div style="text-align:right;font-size:13px;color:var(--muted);">
+      <div style="font-weight:700" id="playerDisplay">Guest</div>
+      <div style="font-size:12px;color:var(--muted)">Player</div>
+    </div>
+    <button class="btn btn-ghost btn-small" id="helpBtn">How to play</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Player + Wallet -->
+  <section class="card">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:12px;align-items:center">
         <div>
-          <div class="mult" id="multiplier">1.00x</div>
-          <div class="status" id="status">Ready for takeoff ✈️</div>
+          <div style="font-size:13px;color:var(--muted)">Player Name</div>
+          <input id="playerName" type="text" placeholder="Enter name (saved)" style="min-width:200px" />
         </div>
-        <div style="text-align:right">
+        <div>
           <div style="font-size:13px;color:var(--muted)">Wallet</div>
-          <div style="font-weight:800">₹ <span id="walletAmount">200.00</span></div>
+          <div class="wallet-balance">₹ <span id="walletAmount">200.00</span></div>
         </div>
       </div>
 
-      <div class="canvas-wrap card" style="padding:10px 12px;">
-        <canvas id="flightCanvas"></canvas>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="addAmount" type="number" placeholder="Amount ₹" min="1" style="width:120px" />
+        <button class="btn btn-primary" id="addBtn">Add</button>
+        <button class="btn btn-ghost" id="clearData">Clear Data</button>
+      </div>
+    </div>
+    <div id="walletMsg" class="status" style="margin-top:10px"></div>
+  </section>
 
-        <!-- plane as inline SVG so we can transform it smoothly -->
-        <svg class="plane-svg" id="planeSvg" viewBox="0 0 200 120" aria-hidden>
-          <g id="planeG" transform="translate(0,8)">
+  <!-- Game -->
+  <section class="card">
+    <div class="game-top">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="multiplier" id="multiplier">1.00x</div>
+          <div style="color:var(--muted);font-size:13px">Current round</div>
+        </div>
+        <div class="status" id="status">Ready for takeoff ✈️</div>
+      </div>
+
+      <div class="controls">
+        <label style="font-size:13px;color:var(--muted)">Bet amount (₹)</label>
+        <input id="betAmount" type="number" min="1" value="10" />
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="startBtn">Start Flight</button>
+          <button class="btn btn-ghost" id="cashoutBtn" disabled>Cash Out</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost btn-small" id="autoBtn">Auto Cashout: Off</button>
+          <input id="autoTarget" type="number" min="1.05" step="0.01" value="2.00" style="width:90px" />
+        </div>
+      </div>
+    </div>
+
+    <div class="track" id="track" title="Tap track to cash out (when flight running)">
+      <div class="rays" aria-hidden></div>
+
+      <div class="hud" id="hud">
+        <div style="font-size:12px;color:var(--muted)">Bet</div>
+        <div style="font-weight:800">₹ <span id="hudBet">0.00</span></div>
+      </div>
+
+      <svg class="trail" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden>
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1">
+            <stop offset="0" stop-color="rgba(229,59,59,0.14)"></stop>
+            <stop offset="1" stop-color="rgba(0,0,0,0.02)"></stop>
+          </linearGradient>
+        </defs>
+        <path d="M0,30 C40,18 80,18 200,10 L200,40 L0,40 Z" fill="url(#g1)"/>
+      </svg>
+
+      <div class="smoke" id="smoke">
+        <div class="p" style="width:28px;height:28px;left:10px;bottom:8px;opacity:0.7"></div>
+        <div class="p" style="width:18px;height:18px;left:34px;bottom:6px;opacity:0.5"></div>
+      </div>
+
+      <div class="plane-wrap" id="planeWrap" aria-hidden>
+        <svg viewBox="0 0 200 120" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0,8)">
             <path d="M20 44 L160 6 L150 54 L190 64 L150 84 L120 70 L45 96 L20 44 Z" fill="#0b0b0b"/>
             <path d="M48 52 L110 36 L98 56 L60 70 Z" fill="#e53b3b"/>
             <path d="M150 6 L162 20 L140 26 Z" fill="#e53b3b"/>
@@ -105,508 +225,380 @@
           </g>
         </svg>
       </div>
+    </div>
 
-      <div class="controls">
-        <label style="font-size:13px;color:var(--muted)">Bet ₹</label>
-        <input id="betAmount" type="number" min="1" value="10" />
-        <button class="btn btn-primary" id="startBtn">Start Flight</button>
-        <button class="btn btn-ghost" id="cashoutBtn" disabled>Cash Out</button>
-        <button class="btn btn-ghost" id="autoBtn">Auto: Off</button>
-        <input id="autoTarget" type="number" min="1.05" step="0.01" value="2.00" style="width:90px" />
-      </div>
-      <div id="gameMsg" class="status"></div>
-    </section>
+    <div id="gameMsg" class="status" style="margin-top:12px"></div>
+  </section>
 
-    <!-- RIGHT: leaderboard + graph -->
-    <aside class="right-col">
-      <div class="card leaderboard">
-        <h3>Leaderboard</h3>
-        <div id="leaderboardTable"></div>
-      </div>
+  <!-- History & Leaderboard -->
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <h3 style="margin:0;font-weight:800">Round History</h3>
+      <div style="color:var(--muted);font-size:13px">Last 10 rounds</div>
+    </div>
+    <div id="historyList" class="history-list"></div>
 
-      <div class="card history-graph">
-        <h3 style="margin:0 0 8px 0;color:var(--muted)">Last 10 crash multipliers</h3>
-        <canvas id="historyCanvas" width="300" height="140" style="width:100%;height:140px;display:block;border-radius:6px"></canvas>
-      </div>
-    </aside>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;margin-bottom:6px">
+      <h3 style="margin:0;font-weight:800">Leaderboard</h3>
+      <div style="color:var(--muted);font-size:13px">Top wins</div>
+    </div>
+    <div style="overflow:auto">
+      <table class="leaderboard" id="leaderboardTable" aria-live="polite">
+        <thead>
+          <tr><th>#</th><th>Player</th><th>Win</th><th>Multiplier</th><th>When</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
 
-    <footer>Local history & leaderboard persist in localStorage (demo seeded). Click Start → Cash Out before crash to win.</footer>
-  </div>
+</main>
 
 <script>
 /* ============================
-   Aviator X — Advanced (Single file)
-   - Cubic Bézier flight path
-   - Smooth history graph (last 10)
-   - Leaderboard seeded with requested names
-   - localStorage persistence
+   Aviator X — Final with:
+   - player name saved in localStorage
+   - history saved (last 10 rounds)
+   - leaderboard (top wins)
+   - WebAudio sounds
    ============================ */
 
-const LS_HISTORY = 'aviatorX_history_v1';
-const LS_LEADER = 'aviatorX_leader_v1';
+const LS_PLAYER = 'aviator_player';
+const LS_HISTORY = 'aviator_history';
+const LS_LEADER = 'aviator_leaderboard';
 const HISTORY_LIMIT = 10;
 const LEADER_LIMIT = 20;
 
 /* DOM */
-const flightCanvas = document.getElementById('flightCanvas');
-const ctx = flightCanvas.getContext('2d');
-const planeSvg = document.getElementById('planeSvg');
-const planeG = document.getElementById('planeG');
-const multiplierEl = document.getElementById('multiplier');
-const statusEl = document.getElementById('status');
+const playerNameInput = document.getElementById('playerName');
+const playerDisplay = document.getElementById('playerDisplay');
+const walletEl = document.getElementById('walletAmount');
+const addAmount = document.getElementById('addAmount');
+const addBtn = document.getElementById('addBtn');
+const walletMsg = document.getElementById('walletMsg');
+const betEl = document.getElementById('betAmount');
 const startBtn = document.getElementById('startBtn');
 const cashBtn = document.getElementById('cashoutBtn');
-const betInput = document.getElementById('betAmount');
-const walletEl = document.getElementById('walletAmount');
-const gameMsg = document.getElementById('gameMsg');
-const leaderboardTable = document.getElementById('leaderboardTable');
-const historyCanvas = document.getElementById('historyCanvas');
-const historyCtx = historyCanvas.getContext('2d');
 const autoBtn = document.getElementById('autoBtn');
 const autoInput = document.getElementById('autoTarget');
-const playerDisplay = document.getElementById('playerDisplay');
+const multiplierEl = document.getElementById('multiplier');
+const statusEl = document.getElementById('status');
+const hudBet = document.getElementById('hudBet');
+const planeWrap = document.getElementById('planeWrap');
+const track = document.getElementById('track');
+const smoke = document.getElementById('smoke');
+const historyList = document.getElementById('historyList');
+const leaderboardTableBody = document.querySelector('#leaderboardTable tbody');
+const clearDataBtn = document.getElementById('clearData');
+const helpBtn = document.getElementById('helpBtn');
+const gameMsg = document.getElementById('gameMsg');
 
 /* State */
+let wallet = 0;
 let running = false;
 let crashed = false;
+let crashPoint = 0;
 let startTime = 0;
 let currentMultiplier = 1.0;
-let crashPoint = 0;
-let raf = null;
 let betValue = 0;
-let wallet = 200.00;
+let raf = null;
+let history = [];    // kept in memory & localStorage (trim to HISTORY_LIMIT)
+let leaderboard = []; // stored in localStorage (top wins)
+let playerName = '';
 let autoEnabled = false;
 let autoTarget = parseFloat(autoInput.value) || 2.0;
 
-/* Data */
-let history = loadLS(LS_HISTORY, []);
-let leaderboard = loadLS(LS_LEADER, [
-  {player: "Ayush Kumar", win: 120.00, mult: 3.00, time: new Date().toISOString()},
-  {player: "Prince Kumar", win: 85.50, mult: 2.50, time: new Date().toISOString()},
-  {player: "Kaushal Yadav", win: 40.00, mult: 1.80, time: new Date().toISOString()},
-  {player: "Uditya Raj", win: 200.00, mult: 4.00, time: new Date().toISOString()}
-]);
-
-/* Canvas sizing */
-function resizeCanvas(){
-  const rect = flightCanvas.getBoundingClientRect();
-  flightCanvas.width = Math.round(rect.width * devicePixelRatio);
-  flightCanvas.height = Math.round(rect.height * devicePixelRatio);
-  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-
-  // history canvas
-  historyCanvas.width = Math.round(historyCanvas.clientWidth * devicePixelRatio);
-  historyCanvas.height = Math.round(historyCanvas.clientHeight * devicePixelRatio);
-  historyCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-  drawHistory(); drawScene(0); // initial draw
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-/* Flight curve control points (relative coordinates inside canvas) */
-/* We'll compute absolute positions on each frame using canvas size */
-function getBezierPoints(w, h){
-  // Start near left-bottom, end near right-top
-  const p0 = {x: w*0.06, y: h*0.78};
-  const p1 = {x: w*0.32, y: h*0.70}; // gentle lift
-  const p2 = {x: w*0.66, y: h*0.32}; // strong upward arc
-  const p3 = {x: w*0.93, y: h*0.14}; // high near right edge
-  return [p0,p1,p2,p3];
-}
-
-/* Cubic Bézier helper */
-function cubicBezierPoint(t, p0,p1,p2,p3){
-  const u = 1 - t;
-  const tt = t*t, uu = u*u, uuu = uu * u, ttt = tt * t;
-  const x = uuu*p0.x + 3*uu*t*p1.x + 3*u*tt*p2.x + ttt*p3.x;
-  const y = uuu*p0.y + 3*uu*t*p1.y + 3*u*tt*p2.y + ttt*p3.y;
-  return {x,y};
-}
-
-/* Draw background grid and subtle horizon */
-function drawBackground(){
-  const w = flightCanvas.width / devicePixelRatio;
-  const h = flightCanvas.height / devicePixelRatio;
-  ctx.clearRect(0,0,w,h);
-
-  // subtle gradient sky
-  const g = ctx.createLinearGradient(0,0,0,h);
-  g.addColorStop(0, 'rgba(255,255,255,0.02)');
-  g.addColorStop(1, 'rgba(0,0,0,0.02)');
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,w,h);
-
-  // grid lines
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-  ctx.lineWidth = 1;
-  const spacing = 24;
-  for(let x=0;x<w;x+=spacing){
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
-  }
-  for(let y=0;y<h;y+=spacing){
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-  }
-  ctx.restore();
-
-  // faint ground band
-  ctx.fillStyle = 'rgba(0,0,0,0.05)';
-  ctx.fillRect(0,h*0.82,w,h*0.18);
-}
-
-/* Draw flight path preview (thin line) */
-function drawPathPreview(){
-  const w = flightCanvas.width / devicePixelRatio;
-  const h = flightCanvas.height / devicePixelRatio;
-  const pts = getBezierPoints(w,h);
-
-  ctx.save();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = 'rgba(229,59,59,0.12)';
-  ctx.beginPath();
-  ctx.moveTo(pts[0].x, pts[0].y);
-  ctx.bezierCurveTo(pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
-  ctx.stroke();
-
-  // little tick marks indicating progress
-  for(let t=0;t<=1;t+=0.125){
-    const p = cubicBezierPoint(t, ...pts);
-    ctx.beginPath(); ctx.arc(p.x,p.y,2,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.02)'; ctx.fill();
-  }
-  ctx.restore();
-}
-
-/* Draw current scene given progress (0..1) - plane along path */
-function drawScene(progress){
-  drawBackground();
-  drawPathPreview();
-
-  const w = flightCanvas.width / devicePixelRatio;
-  const h = flightCanvas.height / devicePixelRatio;
-  const pts = getBezierPoints(w,h);
-
-  // draw flame/trail behind plane depending on multiplier
-  const trailLen = Math.min(1, progress) * 160;
-  const trailCount = Math.round(6 + trailLen/20);
-  for(let i=0;i<trailCount;i++){
-    const t = Math.max(0, progress - (i * 0.02));
-    const p = cubicBezierPoint(t, ...pts);
-    const s = 6 * (1 - i/trailCount);
-    ctx.beginPath();
-    ctx.fillStyle = `rgba(229,59,59,${0.18 * (1 - i/trailCount)})`;
-    ctx.ellipse(p.x - 10 - i*2, p.y + 6 + i*0.6, s, s*0.6, 0, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // plane position
-  const pos = cubicBezierPoint(progress, ...pts);
-  const ahead = cubicBezierPoint(Math.min(1, progress+0.02), ...pts);
-  const angle = Math.atan2(ahead.y - pos.y, ahead.x - pos.x) * 180 / Math.PI;
-
-  // position the SVG plane
-  const planeRect = planeSvg.getBoundingClientRect();
-  const canvasRect = flightCanvas.getBoundingClientRect();
-  const left = canvasRect.left + pos.x - planeRect.width/2;
-  const top = canvasRect.top + pos.y - planeRect.height/2;
-  planeSvg.style.left = (pos.x - planeRect.width/2) + 'px';
-  planeSvg.style.top = (pos.y - planeRect.height/2) + 'px';
-  planeSvg.style.transform = `rotate(${angle}deg) scale(${1 + Math.min(0.25, progress*0.25)})`;
-
-  // draw small marker at plane position on canvas for crispness (behind svg)
-  ctx.beginPath(); ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.arc(pos.x,pos.y,6,0,Math.PI*2); ctx.fill();
-}
-
-/* ----------------- Crash RNG and multiplier growth ----------------- */
-
-/*
- Strategy:
- - Multiplier grows exponentially with time (t) with parameter tuned for good pace.
- - crashPoint is generated from a heavy-tailed distribution (similar to real crash games).
- - We'll map multiplier -> progress along path using a monotonic mapping:
-     progress = map(log(multiplier)/log(crashPoint)) clipped to [0,1]
-   so that when multiplier==crashPoint progress==1 (plane at end)
-*/
-
-function generateCrashPoint(){
-  // heavy tail: invert uniform with exponent for tail
-  const r = Math.random();
-  const v = Math.pow(1/(1-r), 0.9);
-  return Math.min(500, Math.max(1.05, v)); // clamp
-}
-
-function multiplierFromElapsed(elapsed){
-  // elapsed in seconds - choose base for pacing
-  // tuned so multiplier ~ e^(elapsed / 2.8)
-  return Math.exp(elapsed / 2.8);
-}
-
-/* ----------------- Audio (simple) ----------------- */
+/* Audio */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx = null;
 function ensureAudio(){ if(!audioCtx) audioCtx = new AudioCtx(); }
-function ding(){ try{ ensureAudio(); const ctx = audioCtx; const o = ctx.createOscillator(); const g = ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(880,ctx.currentTime); g.gain.setValueAtTime(0.12,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.45); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.45);}catch(e){} }
-function takeoffSound(){ try{ ensureAudio(); const ctx=audioCtx; const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(220,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.5); g.gain.setValueAtTime(0.08,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6);}catch(e){} }
+
+/* simple ding */
+function ding(){ try{ ensureAudio(); const ctx = audioCtx; const o = ctx.createOscillator(); const g = ctx.createGain(); o.type='sine'; o.frequency.setValueAtTime(880,ctx.currentTime); g.gain.setValueAtTime(0.12,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.45);}catch(e){} }
+
+/* takeoff sweep */
+function takeoff(){ try{ ensureAudio(); const ctx=audioCtx; const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='sawtooth'; o.frequency.setValueAtTime(220,ctx.currentTime); o.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.5); g.gain.setValueAtTime(0.08,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.6); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.6);}catch(e){} }
+
+/* crash boom */
 function crashSound(){ try{ ensureAudio(); const ctx=audioCtx; const o1=ctx.createOscillator(); const o2=ctx.createOscillator(); const g=ctx.createGain(); o1.type='sine'; o2.type='sine'; o1.frequency.setValueAtTime(120,ctx.currentTime); o2.frequency.setValueAtTime(80,ctx.currentTime); g.gain.setValueAtTime(0.18,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+1.2); o1.connect(g); o2.connect(g); g.connect(ctx.destination); o1.start(); o2.start(); o1.stop(ctx.currentTime+1.2); o2.stop(ctx.currentTime+1.2);}catch(e){} }
 
-/* ----------------- Main loop ----------------- */
-function startFlight(){
+/* Helpers */
+const $fmt = n => Number(n).toFixed(2);
+function saveLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+function loadLS(key, fallback){ try{ const v = localStorage.getItem(key); return v? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+
+/* Load saved data */
+function loadApp(){
+  // player
+  const p = loadLS(LS_PLAYER, '');
+  if(p){ playerName = p; playerNameInput.value = playerName; playerDisplay.innerText = playerName; }
+  // history & leaderboard
+  history = loadLS(LS_HISTORY, []);
+  leaderboard = loadLS(LS_LEADER, []);
+  // wallet (optional to persist in future) - start with default wallet variable
+  walletEl.innerText = $fmt(wallet);
+  renderHistory();
+  renderLeaderboard();
+}
+loadApp();
+
+/* Save functions */
+function saveHistory(){ saveLS(LS_HISTORY, history); }
+function saveLeader(){ saveLS(LS_LEADER, leaderboard); }
+function savePlayer(){ saveLS(LS_PLAYER, playerName); }
+
+/* UI events */
+playerNameInput.addEventListener('change', ()=>{
+  const v = playerNameInput.value.trim() || 'Guest';
+  playerName = v;
+  playerDisplay.innerText = playerName;
+  savePlayer();
+});
+
+addBtn.addEventListener('click', ()=>{
+  const v = parseFloat(addAmount.value);
+  if(!v || v<=0){ walletMsg.innerText = 'Enter valid amount'; return; }
+  wallet += v;
+  walletEl.innerText = $fmt(wallet);
+  walletMsg.innerText = `₹${$fmt(v)} added`;
+  addAmount.value = '';
+});
+
+autoBtn.addEventListener('click', ()=>{
+  autoEnabled = !autoEnabled;
+  autoBtn.innerText = `Auto Cashout: ${autoEnabled? 'On' : 'Off'}`;
+  autoBtn.classList.toggle('btn-primary', autoEnabled);
+});
+autoInput.addEventListener('change', ()=> autoTarget = parseFloat(autoInput.value) || 2.0 );
+
+/* Crash RNG (7x to 50x only) */
+function generateCrash(){
+    const min = 7;
+    const max = 50;
+    return Math.random() * (max - min) + min;
+}
+
+
+/* Start flight */
+startBtn.addEventListener('click', ()=>{
   if(running) return;
-  const bet = parseFloat(betInput.value);
-  if(!bet || bet <= 0){ statusEl.innerText = 'Enter valid bet'; return; }
+  const bet = parseFloat(betEl.value);
+  if(!bet || bet<=0){ statusEl.innerText = 'Invalid bet'; return; }
   if(bet > wallet){ statusEl.innerText = 'Insufficient balance'; return; }
 
-  betValue = bet;
+  // Deduct
   wallet -= bet;
-  walletEl.innerText = wallet.toFixed(2);
+  walletEl.innerText = $fmt(wallet);
+  betValue = bet;
+  hudBet.innerText = $fmt(bet);
 
   running = true; crashed = false;
+  crashPoint = generateCrash();
   startTime = performance.now();
   currentMultiplier = 1.0;
-  crashPoint = generateCrashPoint();
 
   startBtn.disabled = true; cashBtn.disabled = false;
   statusEl.innerText = 'Flight in air ✈️';
   gameMsg.innerText = '';
+  planeWrap.style.left = '8px'; planeWrap.style.transform = 'translateY(0px) rotate(0deg)';
+  smoke.style.opacity = 0;
+  takeoff();
 
-  // play takeoff sound once
-  takeoffSound();
+  raf = requestAnimationFrame(loop);
+});
 
-  raf = requestAnimationFrame(animate);
+/* Loop */
+function loop(ts){
+  const elapsed = (ts - startTime)/1000;
+  currentMultiplier = Math.exp(elapsed / 2.8);
+
+  multiplierEl.innerText = currentMultiplier.toFixed(2) + 'x';
+
+  const trackWidth = track.clientWidth - planeWrap.clientWidth - 16;
+  const progress = Math.min(1, currentMultiplier / crashPoint);
+  const easing = Math.pow(progress, 0.95);
+  const leftPx = 8 + easing * trackWidth;
+  planeWrap.style.left = leftPx + 'px';
+  planeWrap.style.transform = `translateY(${ -Math.min(40, Math.log(Math.max(1,currentMultiplier))*8) }px) rotate(${Math.min(18, progress*18)}deg)`;
+
+  const trailEl = document.querySelector('.trail');
+  const s = 1 + Math.min(1.4, Math.log(currentMultiplier+1)/2);
+  if(trailEl) trailEl.style.transform = `scaleX(${s})`;
+
+  if(autoEnabled && currentMultiplier >= autoTarget && running && !crashed){
+    doCashout('auto'); return;
+  }
+  if(currentMultiplier >= crashPoint){
+    doCrash(); return;
+  }
+  raf = requestAnimationFrame(loop);
 }
-function cashOut(){
+
+/* Cashout */
+cashBtn.addEventListener('click', ()=> {
   if(!running || crashed) return;
+  doCashout('manual');
+});
+
+function doCashout(mode){
+  if(!running) return;
   const payout = betValue * currentMultiplier;
   wallet += payout;
-  walletEl.innerText = wallet.toFixed(2);
+  walletEl.innerText = $fmt(wallet);
 
   running = false;
   cancelAnimationFrame(raf);
-  startBtn.disabled = false; cashBtn.disabled = true;
 
-  statusEl.innerText = `🟢 Cashed out at ${currentMultiplier.toFixed(2)}x — Won ₹${payout.toFixed(2)}`;
-  gameMsg.innerText = `+ ₹${payout.toFixed(2)} credited`;
+  statusEl.innerText = `🟢 Cashed out at ${currentMultiplier.toFixed(2)}x — Won ₹${$fmt(payout)}`;
+  gameMsg.innerText = `+ ₹${$fmt(payout)} credited`;
+  multiplierEl.innerText = currentMultiplier.toFixed(2) + 'x';
 
-  addRound('Cashed', currentMultiplier, payout);
-  updateLeaderboard('Guest', payout, currentMultiplier);
+  addRoundToHistory('Cashed', currentMultiplier, payout);
+  updateLeaderboard(playerName || 'Guest', payout, currentMultiplier);
+
+  cashBtn.disabled = true; startBtn.disabled = false;
   ding();
 }
+
+/* Crash */
 function doCrash(){
   running = false; crashed = true;
   cancelAnimationFrame(raf);
-  crashSound();
-
+  multiplierEl.innerText = crashPoint.toFixed(2) + 'x';
   statusEl.innerText = `💥 Crashed at ${crashPoint.toFixed(2)}x`;
   gameMsg.innerText = 'Better luck next time';
 
-  startBtn.disabled = false; cashBtn.disabled = true;
+  // shake & smoke
+  const el = planeWrap;
+  let t0 = performance.now(), elapsed = 0;
+  const shakeDur = 900;
+  function shakeyn(now){
+    elapsed = now - t0;
+    const pct = elapsed / shakeDur;
+    if(pct < 1){
+      const amp = 6 * (1 - pct);
+      el.style.transform = `translateY(-8px) rotate(${(Math.sin(now/30)*amp)}deg)`;
+      smoke.style.opacity = Math.min(1, pct*1.2);
+      requestAnimationFrame(shakeyn);
+    } else {
+      el.style.transform = 'translateY(0px) rotate(0deg)';
+      smoke.style.opacity = 0;
+    }
+  }
+  requestAnimationFrame(shakeyn);
+  smoke.style.setProperty('--smoke-left', (Math.random()*40 - 20) + 'px');
+  crashSound();
 
-  addRound('Crashed', crashPoint, 0);
+  addRoundToHistory('Crashed', crashPoint, 0);
+  cashBtn.disabled = true; startBtn.disabled = false;
 }
 
-/* animation frame */
-function animate(ts){
-  const elapsed = (ts - startTime)/1000; // seconds
-  currentMultiplier = multiplierFromElapsed(elapsed);
-  multiplierEl.innerText = currentMultiplier.toFixed(2) + 'x';
-
-  // progress mapping: map currentMultiplier / crashPoint onto 0..1 with easing
-  const rawProgress = Math.min(1, currentMultiplier / crashPoint);
-  // apply easing for nicer start (easeOutCubic-ish)
-  const progress = Math.pow(rawProgress, 0.88);
-  drawScene(progress);
-
-  // auto cashout check
-  if(autoEnabled && currentMultiplier >= autoTarget && running && !crashed){
-    cashOut(); return;
-  }
-
-  if(currentMultiplier >= crashPoint){
-    // ensure we draw plane at end (progress==1) then crash
-    drawScene(1);
-    setTimeout(doCrash, 220); // brief pause for dramatic effect
-    return;
-  }
-  raf = requestAnimationFrame(animate);
-}
-
-/* ----------------- History & Leaderboard ----------------- */
-
-function addRound(type, mult, payout){
-  const entry = {type, mult: Number(mult), payout: Number(payout), time: new Date().toISOString()};
+/* History & Leaderboard management */
+function addRoundToHistory(type, mult, payout){
+  const entry = {type, mult: Number(mult), payout: Number(payout), time: new Date().toISOString(), player: playerName || 'Guest'};
   history.unshift(entry);
+  // trim to last HISTORY_LIMIT
   history = history.slice(0, HISTORY_LIMIT);
-  saveLS(LS_HISTORY, history);
-  drawHistory();
+  saveHistory();
+  renderHistory();
 }
 
-function updateLeaderboard(name, win, mult){
-  if(!win || win <= 0) return;
-  leaderboard.push({player: name || 'Guest', win: Number(win), mult: Number(mult), time: new Date().toISOString()});
+function updateLeaderboard(name, winAmount, mult){
+  if(!winAmount || winAmount <= 0) return;
+  leaderboard.push({player: name || 'Guest', win: Number(winAmount), mult: Number(mult), time: new Date().toISOString()});
   leaderboard.sort((a,b)=> b.win - a.win);
   leaderboard = leaderboard.slice(0, LEADER_LIMIT);
-  saveLS(LS_LEADER, leaderboard);
+  saveLeader();
   renderLeaderboard();
 }
 
-function renderLeaderboard(){
-  leaderboardTable.innerHTML = '';
-  if(!leaderboard.length){
-    leaderboardTable.innerHTML = '<div style="color:var(--muted)">No wins yet</div>';
+function renderHistory(){
+  historyList.innerHTML = '';
+  if(!history.length){
+    historyList.innerHTML = '<div class="muted">No rounds yet</div>';
     return;
   }
-  leaderboard.forEach((r,i)=>{
-    const div = document.createElement('div');
-    div.className = 'lb-item';
-    div.innerHTML = `<div style="font-weight:700">${escapeHtml(r.player)}</div><div>₹${Number(r.win).toFixed(2)} • ${r.mult.toFixed(2)}x</div>`;
-    leaderboardTable.appendChild(div);
-  });
-}
-renderLeaderboard();
-
-/* ----------------- History graph (advanced) ----------------- */
-
-function drawHistory(){
-  // draw last HISTORY_LIMIT crash multipliers (Crashed entries and Cashed both included)
-  const items = history.map(h => h.mult);
-  // if empty, show sample dots
-  const data = items.length ? items.slice(0,HISTORY_LIMIT).reverse() : [1.42, 2.10, 1.05, 3.20, 1.30].reverse();
-
-  const w = historyCanvas.width / devicePixelRatio;
-  const h = historyCanvas.height / devicePixelRatio;
-  historyCtx.clearRect(0,0,w,h);
-
-  // grid
-  historyCtx.strokeStyle = 'rgba(255,255,255,0.04)';
-  historyCtx.lineWidth = 1;
-  historyCtx.beginPath();
-  const gridLines = 4;
-  for(let i=0;i<=gridLines;i++){
-    const y = (h/gridLines)*i;
-    historyCtx.moveTo(0,y); historyCtx.lineTo(w,y);
-  }
-  historyCtx.stroke();
-
-  // margins
-  const pad = 12;
-  const innerW = w - pad*2;
-  const innerH = h - pad*2;
-
-  // find max in data to scale
-  const maxV = Math.max(...data, 1.5);
-  const minV = Math.min(...data, 1.0);
-
-  // map to points
-  const points = data.map((v,i)=>{
-    const t = i / Math.max(1, data.length - 1);
-    const x = pad + t*innerW;
-    // invert y so larger multiplier is higher
-    const y = pad + innerH - ((v - minV) / (maxV - minV + 0.0001)) * innerH;
-    return {x,y,v};
-  });
-
-  // smooth curve using quadratic Bezier through points (simple smoothing)
-  historyCtx.lineWidth = 2.5;
-  historyCtx.strokeStyle = 'rgba(229,59,59,0.95)';
-  historyCtx.beginPath();
-  if(points.length>0){
-    historyCtx.moveTo(points[0].x, points[0].y);
-    for(let i=1;i<points.length;i++){
-      const prev = points[i-1], cur = points[i];
-      const cx = (prev.x + cur.x)/2;
-      const cy = (prev.y + cur.y)/2;
-      historyCtx.quadraticCurveTo(prev.x, prev.y, cx, cy);
-    }
-    // last segment to last point
-    const last = points[points.length-1];
-    historyCtx.lineTo(last.x, last.y);
-  }
-  historyCtx.stroke();
-
-  // fill gradient under curve
-  if(points.length>1){
-    const grad = historyCtx.createLinearGradient(0,pad,0,h-pad);
-    grad.addColorStop(0, 'rgba(229,59,59,0.12)');
-    grad.addColorStop(1, 'rgba(229,59,59,0.03)');
-    historyCtx.fillStyle = grad;
-    historyCtx.beginPath();
-    historyCtx.moveTo(points[0].x, points[0].y);
-    for(let i=1;i<points.length;i++){
-      const prev = points[i-1], cur = points[i];
-      const cx = (prev.x + cur.x)/2;
-      const cy = (prev.y + cur.y)/2;
-      historyCtx.quadraticCurveTo(prev.x, prev.y, cx, cy);
-    }
-    historyCtx.lineTo(pad + innerW, pad + innerH);
-    historyCtx.lineTo(pad, pad + innerH);
-    historyCtx.closePath();
-    historyCtx.fill();
-  }
-
-  // draw points colored by value thresholds
-  points.forEach(p=>{
-    let color = '#6EE7B7'; // green-ish
-    if(p.v >= 3) color = '#f59e0b'; // yellow
-    if(p.v >= 5) color = '#ef4444'; // red
-    historyCtx.beginPath();
-    historyCtx.fillStyle = color;
-    historyCtx.arc(p.x, p.y, 4.5, 0, Math.PI*2);
-    historyCtx.fill();
-
-    // label
-    historyCtx.fillStyle = 'rgba(255,255,255,0.75)';
-    historyCtx.font = '11px Poppins, system-ui, Arial';
-    historyCtx.fillText(p.v.toFixed(2)+'x', p.x - 14, p.y - 8);
+  history.forEach(h=>{
+    const pill = document.createElement('div');
+    pill.className = 'hist-pill';
+    pill.style.border = h.type==='Crashed' ? '1px solid rgba(255,255,255,0.03)' : '1px solid rgba(229,59,59,0.12)';
+    pill.style.background = h.type==='Crashed' ? 'rgba(255,255,255,0.015)' : 'linear-gradient(180deg, rgba(229,59,59,0.04), rgba(0,0,0,0.02))';
+    const when = new Date(h.time).toLocaleTimeString();
+    pill.innerHTML = `<div style="font-size:12px">${h.type}</div>
+                      <div style="font-weight:800">${h.mult.toFixed(2)}x</div>
+                      <div style="font-size:12px;color:var(--muted)">₹${$fmt(h.payout)} • ${when} • ${h.player}</div>`;
+    historyList.appendChild(pill);
   });
 }
 
-/* ----------------- Helpers ----------------- */
-function saveLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-function loadLS(key, fallback){ try{ const v = localStorage.getItem(key); return v? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g, t=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[t])); }
+function renderLeaderboard(){
+  leaderboardTableBody.innerHTML = '';
+  if(!leaderboard.length){
+    leaderboardTableBody.innerHTML = '<tr><td colspan="5" class="muted">No wins yet</td></tr>';
+    return;
+  }
+  leaderboard.forEach((row, i)=>{
+    const tr = document.createElement('tr');
+    const when = new Date(row.time).toLocaleString();
+    tr.innerHTML = `<td>${i+1}</td><td>${escapeHtml(row.player)}</td><td>₹${$fmt(row.win)}</td><td>${row.mult.toFixed(2)}x</td><td class="muted">${when}</td>`;
+    leaderboardTableBody.appendChild(tr);
+  });
+}
 
-/* ----------------- UI wiring ----------------- */
-
-startBtn.addEventListener('click', ()=>{
-  // unlock audio on user gesture (some browsers require)
-  try{ ensureAudio(); }catch(e){}
-  startFlight();
+/* Save & Clear Data */
+clearDataBtn.addEventListener('click', ()=>{
+  if(!confirm('Clear saved player, history and leaderboard?')) return;
+  localStorage.removeItem(LS_PLAYER);
+  localStorage.removeItem(LS_HISTORY);
+  localStorage.removeItem(LS_LEADER);
+  playerName = '';
+  playerNameInput.value = '';
+  playerDisplay.innerText = 'Guest';
+  history = [];
+  leaderboard = [];
+  saveHistory(); saveLeader(); savePlayer();
+  renderHistory(); renderLeaderboard();
 });
-cashBtn.addEventListener('click', cashOut);
 
-autoBtn.addEventListener('click', ()=>{
-  autoEnabled = !autoEnabled;
-  autoBtn.textContent = 'Auto: ' + (autoEnabled ? 'On' : 'Off');
-  autoBtn.classList.toggle('btn-primary', autoEnabled);
-});
-autoInput.addEventListener('change', ()=>{ autoTarget = parseFloat(autoInput.value) || 2.0; });
+/* small helpers */
+function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
 
-/* Persist and render initial UI */
-document.getElementById('playerDisplay').innerText = 'Guest';
-document.getElementById('walletAmount').innerText = wallet.toFixed(2);
-renderLeaderboard();
-drawHistory();
+/* Click track to cash out quickly (when running) */
+track.addEventListener('click', ()=> { if(running && !crashed) doCashout('tap'); });
 
-/* Keep plane visible by positioning once (initial) */
-function initialPlanePosition(){
-  drawScene(0);
-}
-initialPlanePosition();
-
-/* Prevent accidental form submission on Enter */
+/* Prevent form submit on Enter */
 document.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); return false; } });
 
-/* On load: if no history, seed a few rounds to make graph informative */
-if(history.length === 0){
-  addRound('Crashed', 1.42, 0);
-  addRound('Cashed', 2.10, 21.00);
-  addRound('Crashed', 1.05, 0);
-  saveLS(LS_HISTORY, history);
-  drawHistory();
-}
-saveLS(LS_LEADER, leaderboard);
+/* On load: show persisted history & leaderboard */
+(function initFromLS(){
+  history = loadLS(LS_HISTORY, []);
+  leaderboard = loadLS(LS_LEADER, []);
+  renderHistory(); renderLeaderboard();
+})();
 
-/* ensure flightCanvas resized initially */
-setTimeout(resizeCanvas, 40);
+/* Demo seed data if empty (keeps UI informative) */
+if(history.length === 0){
+  addRoundToHistory('Crashed', 1.42, 0);
+  addRoundToHistory('Cashed', 2.10, 21.00);
+  addRoundToHistory('Crashed', 1.05, 0);
+}
+if(leaderboard.length === 0){
+  updateLeaderboard('Alex', 120.00, 3.00);
+  updateLeaderboard('Sam', 85.50, 2.50);
+}
+
+/* "How to play" */
+helpBtn.addEventListener('click', ()=> {
+  alert("Aviator X — How to play:\\n1) Enter player name and add money.\\n2) Place a bet and press Start Flight.\\n3) Multiplier rises — click Cash Out before plane crashes.\\n4) Your win (bet × multiplier) is saved to leaderboard and history.\\nHistory keeps the last 10 rounds.");
+});
+
+/* Unlock audio on first gesture */
+['click','touchstart'].forEach(evt=>{
+  window.addEventListener(evt, function once(){
+    try{ ensureAudio(); }catch(e){}
+    window.removeEventListener(evt, once);
+  }, {passive:true});
+});
 
 </script>
 </body>
