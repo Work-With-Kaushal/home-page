@@ -371,11 +371,11 @@ autoBtn.addEventListener('click', ()=>{
 });
 autoInput.addEventListener('change', ()=> autoTarget = parseFloat(autoInput.value) || 2.0 );
 
-/* Crash RNG (heavy tail) */
+/* Crash RNG (7x to 50x only) */
 function generateCrash(){
-    const r = Math.random();
-    let c = Math.pow(1/(1-r), 0.9);
-    return Math.min(500, Math.max(10, c));
+    const min = 7;
+    const max = 50;
+    return Math.random() * (max - min) + min;
 }
 
 
